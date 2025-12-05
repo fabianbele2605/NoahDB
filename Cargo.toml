@@ -1,0 +1,23 @@
+[workspace]
+members = [
+    "noah-protocol",
+    "noah-server",
+    "noah-bench"
+]
+resolver = "2"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+tonic = "0.10"
+prost = "0.12"
+tonic-build = "0.10"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+axum = "0.7"
+tower-http = { version = "0.5", features = ["cors"] }
+clap = { version = "4.0", features = ["derive"] }
+rand = "0.8"
+dashmap = "6.0"
+# NanoDB Engine - Motor real de base de datos
+nanodb-core = { git = "https://github.com/fabianbele2605/arquitectura-hexagonal-nanodb", branch = "main" }
