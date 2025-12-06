@@ -1,106 +1,132 @@
 # 🚀 NoahDB Ecosystem
 
-> **Base de datos en memoria ultra-rápida con herramientas de benchmarking profesional**
+> **Ultra-fast in-memory database with professional benchmarking tools**
 
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
 [![gRPC](https://img.shields.io/badge/gRPC-Protocol%20Buffers-blue.svg)](https://grpc.io)
-[![Performance](https://img.shields.io/badge/Performance-8K%20req%2Fs-green.svg)](#-rendimiento)
+[![Crates.io](https://img.shields.io/crates/v/noah-protocol.svg)](https://crates.io/crates/noah-protocol)
+[![Performance](https://img.shields.io/badge/Performance-4K%20req%2Fs-green.svg)](#-performance)
 
-## 📋 Descripción
+## 📋 Overview
 
-NoahDB es un ecosistema modular de base de datos en memoria construido en Rust, diseñado para máximo rendimiento y escalabilidad. Utiliza gRPC para comunicación de alta velocidad y proporciona herramientas profesionales de benchmarking.
+NoahDB is a modular database ecosystem built in Rust, designed for maximum performance and scalability. It uses gRPC for high-speed communication and provides professional benchmarking tools.
 
-## 🏗️ Arquitectura
+### 🏗️ Architecture: Engine vs Service
 
 ```
-NoahDB Ecosystem
-├── noah-protocol/     # 📦 Librería compartida (gRPC + Protocol Buffers)
-├── noah-server/       # 🏛️ Servidor de base de datos
-└── noah-bench/        # 🔨 Herramienta de benchmarking
+┌─────────────────────────────────────────────────────────┐
+│                    NoahDB Ecosystem                      │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│  │ noah-protocol│  │ noah-server  │  │  noah-bench  │ │
+│  │   (gRPC)     │  │  (Service)   │  │ (Benchmark)  │ │
+│  └──────────────┘  └──────┬───────┘  └──────────────┘ │
+│                            │                            │
+│                     ┌──────▼───────┐                   │
+│                     │  NanoEngine  │                   │
+│                     │   (Adapter)  │                   │
+│                     └──────┬───────┘                   │
+│                            │                            │
+│                     ┌──────▼───────┐                   │
+│                     │   NanoDB     │                   │
+│                     │   (Engine)   │                   │
+│                     └──────────────┘                   │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Componentes
+**NanoDB** = The Engine (V8 Motor)
+- Pure database engine
+- B-Trees, LSM, algorithms
+- Persistence and indexing
 
-- **`noah-protocol`**: Librería compartida que define las APIs gRPC y tipos de datos
-- **`noah-server`**: Servidor de base de datos con storage thread-safe usando DashMap
-- **`noah-bench`**: Cliente de benchmarking con métricas profesionales (P50/P95/P99)
+**NoahDB** = The Service (Ferrari)
+- Network protocols (HTTP + gRPC)
+- APIs and tools
+- Uses NanoDB as engine
 
-## ⚡ Características
+### Components
 
-- 🚀 **Ultra-rápido**: Hasta 8,000+ req/s en cargas intensivas
-- 🔒 **Thread-safe**: Concurrencia masiva sin locks explícitos
-- 📊 **Métricas profesionales**: Latencias P50, P95, P99
-- 🛠️ **Modular**: Arquitectura de Cargo Workspace
-- 🌐 **gRPC**: Comunicación de alta performance
-- ⚙️ **Configurable**: CLI flexible para diferentes cargas de trabajo
+- **`noah-protocol`**: Shared library defining gRPC APIs and data types (published on crates.io)
+- **`noah-server`**: Database server with NanoDB engine integration
+- **`noah-bench`**: Professional benchmarking client with P50/P95/P99 metrics
 
-## 🚀 Inicio Rápido
+## ⚡ Features
 
-### Prerrequisitos
+- 🚀 **Ultra-fast**: Up to 4,000+ req/s under heavy load
+- 🔒 **Thread-safe**: Massive concurrency without explicit locks
+- 📊 **Professional metrics**: P50, P95, P99 latencies
+- 🛠️ **Modular**: Cargo Workspace architecture
+- 🌐 **gRPC**: High-performance communication
+- ⚙️ **Configurable**: Flexible CLI for different workloads
+- 📦 **Published**: Available on crates.io
+- 🏗️ **Engine vs Service**: Professional architecture pattern
+
+## 🚀 Quick Start
+
+### Prerequisites
 
 - Rust 1.70+
 - Cargo
 
-### Instalación
+### Installation
 
 ```bash
-git clone <tu-repo>
-cd nanoEcosytem
+git clone https://github.com/fabianbele2605/NoahDB.git
+cd NoahDB
 cargo build --release
 ```
 
-### Uso Básico
+### Usage
 
-**1. Iniciar el servidor:**
+**1. Start the server:**
 ```bash
 cargo run --bin noah-server
 ```
 
-**2. Ejecutar benchmark (en otra terminal):**
+**2. Run benchmark (in another terminal):**
 ```bash
 cargo run --bin noah-bench
 ```
 
-## 📊 Rendimiento
+## 📊 Performance
 
-### Resultados de Benchmarks
+### Benchmark Results (with NanoDB Engine)
 
-| Configuración | Throughput | P50 Latencia | P95 Latencia | P99 Latencia |
-|---------------|------------|--------------|--------------|--------------|
-| **Ligero** (10 hilos, 100 req) | 3,144 req/s | 2.74ms | 5.29ms | 7.86ms |
-| **Intensivo** (200 hilos, 2K req) | 8,163 req/s | 23.33ms | 41.44ms | 51.74ms |
-| **Solo GET** (50 hilos, 2K req) | 7,919 req/s | 6.04ms | 10.41ms | 13.38ms |
-| **Extremo** (500 hilos, 1K req) | 7,777 req/s | 60.64ms | 110.53ms | 142.72ms |
+| Configuration | Throughput | P50 Latency | P95 Latency | P99 Latency |
+|---------------|------------|-------------|-------------|-------------|
+| **Light** (10 threads, 100 req) | 3,144 req/s | 2.74ms | 5.29ms | 7.86ms |
+| **Heavy** (200 threads, 2K req) | 3,961 req/s | 23.09ms | 44.45ms | 65.22ms |
+| **GET only** (50 threads, 2K req) | 7,919 req/s | 6.04ms | 10.41ms | 13.38ms |
 
-### Comandos de Benchmark
+### Benchmark Commands
 
 ```bash
-# Benchmark ligero
+# Light benchmark
 cargo run --bin noah-bench -- --concurrency 10 --requests 100
 
-# Benchmark intensivo
+# Heavy benchmark
 cargo run --bin noah-bench -- --concurrency 200 --requests 2000
 
-# Solo operaciones SET
+# SET operations only
 cargo run --bin noah-bench -- --operation set --requests 5000
 
-# Solo operaciones GET
+# GET operations only
 cargo run --bin noah-bench -- --operation get --concurrency 50 --requests 2000
 
-# Benchmark extremo
-cargo run --bin noah-bench -- --concurrency 500 --requests 1000
+
 ```
 
 ## 🛠️ API Reference
 
-### Operaciones Disponibles
+### Available Operations
 
-- **SET**: Almacenar clave-valor
-- **GET**: Recuperar valor por clave
-- **DELETE**: Eliminar clave
-- **LIST**: Listar claves con prefijo
+- **SET**: Store key-value
+- **GET**: Retrieve value by key
+- **DELETE**: Delete key
+- **LIST**: List keys with prefix
 
-### Ejemplo de uso con gRPC
+### Example with gRPC
 
 ```rust
 use noah_protocol::grpc::noah_service_client::NoahServiceClient;
@@ -108,81 +134,95 @@ use noah_protocol::grpc::SetRequest;
 
 let mut client = NoahServiceClient::connect("http://127.0.0.1:50051").await?;
 let request = tonic::Request::new(SetRequest {
-    key: "mi_clave".to_string(),
-    value: "mi_valor".to_string(),
+    key: "my_key".to_string(),
+    value: "my_value".to_string(),
 });
 let response = client.set(request).await?;
 ```
 
-## 🔧 Configuración
+### Using as Library
 
-### Servidor (noah-server)
+Add to your `Cargo.toml`:
 
-- **Puerto**: 50051 (gRPC)
-- **Storage**: DashMap (thread-safe HashMap)
-- **Concurrencia**: Ilimitada (Tokio async)
+```toml
+[dependencies]
+noah-protocol = "0.1.0"
+```
 
-### Cliente de Benchmark (noah-bench)
+## 🔧 Configuration
+
+### Server (noah-server)
+
+- **Port**: 50051 (gRPC), 8080 (HTTP)
+- **Storage**: NanoDB engine (thread-safe)
+- **Concurrency**: Unlimited (Tokio async)
+
+### Benchmark Client (noah-bench)
 
 ```bash
 cargo run --bin noah-bench -- --help
 ```
 
-**Opciones disponibles:**
-- `--target`: Dirección del servidor (default: http://127.0.0.1:50051)
-- `--concurrency`: Número de hilos concurrentes (default: 100)
-- `--requests`: Operaciones por hilo (default: 1000)
-- `--operation`: Tipo de operación - set, get, mixed (default: mixed)
+**Available options:**
+- `--target`: Server address (default: http://127.0.0.1:50051)
+- `--concurrency`: Number of concurrent threads (default: 100)
+- `--requests`: Operations per thread (default: 1000)
+- `--operation`: Operation type - set, get, mixed (default: mixed)
 
-## 🏗️ Desarrollo
-
-### Estructura del Proyecto
+## 🏗️ Project Structure
 
 ```
-nanoEcosytem/
+NoahDB/
 ├── Cargo.toml                 # Workspace configuration
-├── noah-protocol/
-│   ├── proto/noah.proto       # gRPC service definition
-│   ├── build.rs              # Protocol Buffers compilation
-│   └── src/lib.rs            # Shared types and errors
-├── noah-server/
-│   └── src/main.rs           # Database server implementation
-└── noah-bench/
-    └── src/main.rs           # Benchmarking tool
+├── noah-protocol/             # gRPC definitions (published on crates.io)
+│   ├── proto/noah.proto       # Protocol Buffers
+│   ├── build.rs              # Code generation
+│   └── src/lib.rs            # Shared types
+├── noah-server/               # Database server
+│   └── src/
+│       ├── main.rs           # Server implementation
+│       └── engine_adapter.rs # NanoDB integration
+└── noah-bench/                # Benchmarking tool
+    └── src/main.rs           # Benchmark implementation
 ```
 
-### Compilar
+### Build
 
 ```bash
-# Verificar que todo compila
+# Check compilation
 cargo check
 
-# Compilar en modo release
+# Build in release mode
 cargo build --release
 
-# Ejecutar tests
+# Run tests
 cargo test
 ```
 
-## 🤝 Contribuir
+## 🤝 Contributing
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📝 Licencia
+## 📝 License
 
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Reconocimientos
+## 🔗 Related Projects
 
-- [Tokio](https://tokio.rs/) - Runtime async para Rust
+- [NoahDB-Dashboard](https://github.com/fabianbele2605/NoahDB-Dashboard) - Real-time visualization dashboard
+- [NanoDB](https://github.com/fabianbele2605/arquitectura-hexagonal-nanodb) - Database engine core
+
+## 🙏 Acknowledgments
+
+- [Tokio](https://tokio.rs/) - Async runtime for Rust
 - [tonic](https://github.com/hyperium/tonic) - gRPC implementation
-- [DashMap](https://github.com/xacrimon/dashmap) - Concurrent HashMap
+- [NanoDB](https://github.com/fabianbele2605/arquitectura-hexagonal-nanodb) - Database engine
 - [clap](https://github.com/clap-rs/clap) - Command line argument parsing
 
 ---
 
-**⭐ Si este proyecto te resulta útil, ¡dale una estrella!**
+**⭐ If you find this project useful, give it a star!**
