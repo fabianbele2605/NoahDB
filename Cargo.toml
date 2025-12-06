@@ -20,4 +20,4 @@ clap = { version = "4.0", features = ["derive"] }
 rand = "0.8"
 dashmap = "6.0"
 # NanoDB Engine - Motor real de base de datos
-nanodb-core = { git = "https://github.com/fabianbele2605/arquitectura-hexagonal-nanodb", branch = "main" }
+nanodb-core = { git = "https://github.com/fabianbele2605/arquitectura-hexagonal-nanodb", subdirectory = "protocol-arena/core" }
