@@ -8,6 +8,7 @@ use std::sync::Arc;
 
 // Adapter para NanoDB engine
 mod engine_adapter;
+mod persistence;
 use engine_adapter::NanoEngine;
 use tonic::{transport::Server, Request, Response, Status};
 use tracing::info;
@@ -172,8 +173,38 @@ async fn test_cors() -> &'static str {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
     
-    let noah_server = NoahServer::new();
-    let engine = noah_server.engine.clone();
+    // 1. Crear PersistenceManager
+    let persistence = Arc::new(persistence::PersistenceManager::new("./data"));
+    
+    // 2. Cargar snapshot
+    info!(" Loading snapshot...");
+    let snapshot_data = persistence.load_snapshot()?;
+    
+    // 3. Crear engine y poblar con datos
+    let engine = Arc::new(NanoEngine::new());
+    for (key, value) in snapshot_data {
+        engine.set(&key, value);
+    }
+    
+    // 4. Crear servidor con el engine poblado
+    let noah_server = NoahServer {
+        engine: engine.clone(),
+    };
+    
+    // 5. Tarea periódica para guardar snapshots cada 60 segundos
+    let persistence_clone = persistence.clone();
+    let engine_clone = engine.clone();
+    tokio::spawn(async move {
+        let mut interval = tokio::time::interval(tokio::time::Duration::from_secs(60));
+        loop {
+            interval.tick().await;
+            info!(" Saving snapshot...");
+            let data = engine_clone.get_all_data();
+            if let Err(e) = persistence_clone.save_snapshot(data) {
+                tracing::error!("Failed to save snapshot: {}", e);
+            }
+        }
+    });
 
     // HTTP Server
     let app = Router::new()
@@ -187,7 +218,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Start HTTP server
     let http_addr = "127.0.0.1:8080";
-    info!("🌐 NoahDB HTTP Server starting on {}", http_addr);
+    info!(" NoahDB HTTP Server starting on {}", http_addr);
     tokio::spawn(async move {
         let listener = tokio::net::TcpListener::bind(http_addr).await.unwrap();
         axum::serve(listener, app).await.unwrap();
@@ -195,7 +226,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Start gRPC server
     let grpc_addr = "127.0.0.1:50051".parse()?;
-    info!("🚀 NoahDB gRPC Server starting on {}", grpc_addr);
+    info!(" NoahDB gRPC Server starting on {}", grpc_addr);
 
     Server::builder()
         .add_service(NoahServiceServer::new(noah_server))

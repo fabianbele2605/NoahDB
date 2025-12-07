@@ -1,6 +1,6 @@
 # 🚀 NoahDB Ecosystem
 
-> **Ultra-fast in-memory database with professional benchmarking tools**
+> **Ultra-fast persistent database with automatic snapshots and professional benchmarking**
 
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org)
 [![gRPC](https://img.shields.io/badge/gRPC-Protocol%20Buffers-blue.svg)](https://grpc.io)
@@ -54,6 +54,7 @@ NoahDB is a modular database ecosystem built in Rust, designed for maximum perfo
 ## ⚡ Features
 
 - 🚀 **Ultra-fast**: Up to 4,000+ req/s under heavy load
+- 💾 **Persistent**: Automatic snapshots every 60 seconds with instant recovery
 - 🔒 **Thread-safe**: Massive concurrency without explicit locks
 - 📊 **Professional metrics**: P50, P95, P99 latencies
 - 🛠️ **Modular**: Cargo Workspace architecture
@@ -149,6 +150,49 @@ Add to your `Cargo.toml`:
 noah-protocol = "0.1.0"
 ```
 
+## 💾 Persistence
+
+NoahDB includes automatic data persistence using snapshots, ensuring your data survives server restarts.
+
+### How it Works
+
+- **Automatic Snapshots**: Data is saved to disk every 60 seconds
+- **Instant Recovery**: On startup, the server automatically loads the last snapshot
+- **Binary Format**: Uses `bincode` for fast and compact serialization
+- **Storage Location**: `./data/snapshot.rdb`
+
+### Example
+
+```bash
+# Start server
+cargo run --bin noah-server
+
+# Insert data
+curl -X POST http://127.0.0.1:8080/api/set \
+  -H "Content-Type: application/json" \
+  -d '{"key":"user","value":"Alice"}'
+
+# Wait 60 seconds for automatic snapshot
+# Or restart server - data will be recovered automatically
+
+# Restart server
+cargo run --bin noah-server
+# Logs will show: "Snapshot loaded: X keys"
+
+# Data persists
+curl http://127.0.0.1:8080/api/get/user
+# Returns: {"success":true,"message":"Key found","data":"Alice"}
+```
+
+### Snapshot Logs
+
+```
+INFO noah_server: Loading snapshot...
+INFO noah_server::persistence: Snapshot loaded: 3 keys
+INFO noah_server: Saving snapshot...
+INFO noah_server::persistence: Snapshot saved: 3 keys
+```
+
 ## 🔧 Configuration
 
 ### Server (noah-server)
@@ -181,7 +225,8 @@ NoahDB/
 ├── noah-server/               # Database server
 │   └── src/
 │       ├── main.rs           # Server implementation
-│       └── engine_adapter.rs # NanoDB integration
+│       ├── engine_adapter.rs # NanoDB integration
+│       └── persistence.rs    # Snapshot persistence
 └── noah-bench/                # Benchmarking tool
     └── src/main.rs           # Benchmark implementation
 ```

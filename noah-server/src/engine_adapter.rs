@@ -1,4 +1,5 @@
 use nanodb_core::{NanoDb, DbResult};
+use serde::de::value;
 use std::sync::Arc;
 
 // Wrapper para adaptar NanoDB real a la API síncrona de NoahDB
@@ -16,8 +17,12 @@ impl NanoEngine {
     pub fn set(&self, key: &str, value: Vec<u8>) {
         let db = Arc::clone(&self.db);
         let key = key.to_string();
-        tokio::spawn(async move {
+        let handle = tokio::spawn(async move {
             db.set(key, value).await;
+        });
+
+        tokio::task::block_in_place(|| {
+            tokio::runtime::Handle::current().block_on(handle).ok();
         });
     }
 
@@ -65,6 +70,18 @@ impl NanoEngine {
         tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(handle).unwrap_or_default()
         })
+    }
+
+    pub fn get_all_data(&self) -> Vec<(String, Vec<u8>)> {
+        let keys = self.list_keys("");
+        let mut data = Vec::new();
+
+        for key in keys {
+            if let Some(value) = self.get(&key) {
+                data.push((key, value));
+            }
+        }
+        data
     }
 }
 
