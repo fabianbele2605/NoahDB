@@ -1,6 +1,6 @@
 [package]
 name = "noah-protocol"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 description = "Protocol definitions and gRPC services for NoahDB"
@@ -8,6 +8,8 @@ license = "MIT"
 repository = "https://github.com/fabianbele2605/NoahDB"
 keywords = ["database", "grpc", "protocol", "nanodb"]
 categories = ["database", "network-programming"]
+
+readme = "README.md"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
